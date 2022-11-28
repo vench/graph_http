@@ -13,11 +13,22 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var (
+	version string
+	build   string
+)
+
 func main() {
 	envPath := flag.String("env", ".env", "Path to environment config file")
 	inputFile := flag.String("path", "example.http", "Path to file for parsing .http format")
+	showVersion := flag.Bool("version", false, "Show current version")
 
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("version: %s, build: %s\n", version, build)
+		return
+	}
 
 	if _, err := os.Stat(*envPath); err == nil {
 		if err = godotenv.Load(*envPath); err != nil {

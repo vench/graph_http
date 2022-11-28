@@ -8,11 +8,12 @@ import (
 )
 
 type queryHTTP struct {
-	name           string
-	url            string
-	method         string
-	headers        map[string]string
-	body           string
+	name    string
+	url     string
+	method  string
+	headers map[string]string
+	body    string
+	// nolint:unused
 	dependencyName string
 }
 
