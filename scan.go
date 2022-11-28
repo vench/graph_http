@@ -8,11 +8,12 @@ import (
 )
 
 type queryHTTP struct {
-	name    string
-	url     string
-	method  string
-	headers map[string]string
-	body    string
+	name        string
+	url         string
+	method      string
+	headers     map[string]string
+	body        string
+	queryNumber int
 	// nolint:unused
 	dependencyName string
 }
@@ -42,8 +43,9 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 			}
 
 			current = &queryHTTP{
-				name:    parseName(line, len(result)+1),
-				headers: make(map[string]string),
+				name:        parseName(line, len(result)+1),
+				headers:     make(map[string]string),
+				queryNumber: len(result) + 1,
 			}
 
 			if isURL(line) {

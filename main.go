@@ -1,14 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -19,9 +15,22 @@ var (
 )
 
 func main() {
-	envPath := flag.String("env", ".env", "Path to environment config file")
-	inputFile := flag.String("path", "example.http", "Path to file for parsing .http format")
-	showVersion := flag.Bool("version", false, "Show current version")
+	var (
+		envPath     = flag.String("env", ".env", "Path to environment config file")
+		inputFile   = flag.String("path", "example.http", "Path to file for parsing .http format")
+		showVersion = flag.Bool("version", false, "Show current version")
+
+		queryName   string
+		queryURL    string
+		queryNumber int
+	)
+
+	flag.StringVar(&queryURL, "query_url", "", "Direct URL for run")
+	flag.StringVar(&queryURL, "u", "", "Alias for -query_url")
+	flag.StringVar(&queryName, "query_name", "", "Filter by query name")
+	flag.StringVar(&queryName, "q", "", "Alias for -query_url")
+	flag.IntVar(&queryNumber, "query_number", 0, "Filter by query number position in file")
+	flag.IntVar(&queryNumber, "n", 0, "Alias for -query_number")
 
 	flag.Parse()
 
@@ -36,6 +45,16 @@ func main() {
 		}
 	}
 
+	if queryURL != "" {
+		executeQuery("", 0, queryHTTP{
+			name:   queryURL,
+			url:    parseURL(queryURL),
+			method: parseMethod(queryURL),
+		})
+
+		return
+	}
+
 	f, err := os.Open(*inputFile)
 	if err != nil {
 		log.Fatalf("failed to open file[%s] : %v", *inputFile, err)
@@ -47,30 +66,5 @@ func main() {
 		log.Fatalf("failed to scan file[%s] : %v", *inputFile, err)
 	}
 
-	for i := range result {
-		q := result[i]
-
-		fmt.Printf("run query : %s\n\n", q.name)
-
-		request, err := http.NewRequest(q.method, q.url, bytes.NewBufferString(q.body))
-		if err != nil {
-			log.Fatalf("failed to create new http request: %v", err)
-		}
-
-		response, err := http.DefaultClient.Do(request)
-		if err != nil {
-			log.Fatalf("failed to do http request: %v", err)
-		}
-
-		data, err := io.ReadAll(response.Body)
-		if err != nil {
-			log.Fatalf("failed to read body: %v", err)
-		}
-
-		for k := range response.Header {
-			fmt.Printf("%s: %s\n", k, strings.Join(response.Header[k], ","))
-		}
-
-		fmt.Printf("\n%s\n\n", string(data))
-	}
+	executeQuery(queryName, queryNumber, result...)
 }
