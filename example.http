@@ -1,0 +1,15 @@
+https://api.myip.com
+
+### test1
+http://localhost:8080/?test=foo
+
+### test2
+POST https://localhost:8080/?x=1y=2
+Cookie: abc=1234
+Content-Type: application/json
+X-Requested-With: XMLHttpRequest
+
+{"abc":"xyz"}
+
+### test1
+GET http://localhost:8080/?x=1y=2
