@@ -89,6 +89,14 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 	return result, nil
 }
 
+func isScript(line string) bool {
+	if line != "" && line[:1] == ">" {
+		return false
+	}
+
+	return false
+}
+
 func isURL(line string) bool {
 	if len(line) < 4 {
 		return false

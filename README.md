@@ -4,7 +4,7 @@ This tool build and run graph http queries
 ### Install
 
 ```shell
-go install github.com/vench/graph_http@latest
+go install github.com/vench/graph_http@v0.0.2
 ```
 
 ### Examples
