@@ -46,7 +46,7 @@ func main() {
 	}
 
 	if queryURL != "" {
-		executeQuery("", 0, queryHTTP{
+		executeQuery(queryHTTP{
 			name:   queryURL,
 			url:    parseURL(queryURL),
 			method: parseMethod(queryURL),
@@ -66,5 +66,5 @@ func main() {
 		log.Fatalf("failed to scan file[%s] : %v", *inputFile, err)
 	}
 
-	executeQuery(queryName, queryNumber, result...)
+	executeQuery(filterQueries(queryName, queryNumber, result)...)
 }

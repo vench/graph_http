@@ -46,7 +46,7 @@ GET http://localhost:8080/?foo=bar
 
 ## skip line
 
-### post query
+### post query < some name
 POST https://test.local/foo
 
 {
@@ -74,12 +74,13 @@ POST https://test.local/foo
 					headers:     make(map[string]string),
 				},
 				{
-					name:        "### post query",
-					queryNumber: 3,
-					url:         "https://test.local/foo",
-					method:      "POST",
-					headers:     make(map[string]string),
-					body:        "{\"json\":1,\"date\":\"2022-11-12\"}",
+					name:           "### post query",
+					dependencyName: "### some name",
+					queryNumber:    3,
+					url:            "https://test.local/foo",
+					method:         "POST",
+					headers:        make(map[string]string),
+					body:           "{\"json\":1,\"date\":\"2022-11-12\"}",
 				},
 			},
 		},

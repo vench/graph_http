@@ -9,12 +9,13 @@ import (
 
 type queryHTTP struct {
 	name        string
-	url         string
-	method      string
-	headers     map[string]string
-	body        string
 	queryNumber int
-	// nolint:unused
+
+	url     string
+	method  string
+	headers map[string]string
+	body    string
+
 	dependencyName string
 }
 
@@ -42,10 +43,13 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 				result = append(result, *current)
 			}
 
+			pName := parseName(line, len(result)+1)
+			name, dependencyName := splitDependencyName(pName)
 			current = &queryHTTP{
-				name:        parseName(line, len(result)+1),
-				headers:     make(map[string]string),
-				queryNumber: len(result) + 1,
+				name:           name,
+				dependencyName: dependencyName,
+				headers:        make(map[string]string),
+				queryNumber:    len(result) + 1,
 			}
 
 			if isURL(line) {
@@ -89,6 +93,7 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 	return result, nil
 }
 
+// nolint: unused
 func isScript(line string) bool {
 	if line != "" && line[:1] == ">" {
 		return false
@@ -122,6 +127,17 @@ func parseName(line string, numberInFile int) string {
 	}
 
 	return line
+}
+
+func splitDependencyName(name string) (string, string) {
+	if s := strings.Split(name, "<"); len(s) == 2 {
+		if !isName(s[1]) && len(s[1]) != 0 {
+			return strings.TrimSpace(s[0]), "### " + strings.TrimSpace(s[1])
+		}
+		return strings.TrimSpace(s[0]), strings.TrimSpace(s[1])
+	}
+
+	return name, ""
 }
 
 func parseMethod(line string) string {

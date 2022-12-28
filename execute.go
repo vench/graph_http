@@ -14,23 +14,26 @@ import (
 
 const defaultTimeOut = 5 * time.Second
 
-func executeQuery(queryName string, queryNumber int, result ...queryHTTP) {
+func executeQuery(result ...queryHTTP) {
 	var wg sync.WaitGroup
+
+	dm := make(map[string]chan struct{})
+	for i := range result {
+		dm[result[i].name] = make(chan struct{})
+	}
 
 	for i := range result {
 		q := result[i]
 
-		if queryName != "" && queryName != q.name {
-			continue
-		}
-
-		if queryNumber != 0 && queryNumber != q.queryNumber {
-			continue
-		}
-
+		wg.Add(1)
 		go func(w *sync.WaitGroup) {
-			w.Add(1)
 			defer w.Done()
+			defer close(dm[q.name])
+
+			if c, ok := dm[q.dependencyName]; ok {
+				// wait dependency query
+				<-c
+			}
 
 			ctx, cancel := context.WithTimeout(context.Background(), defaultTimeOut)
 			defer cancel()
@@ -61,4 +64,24 @@ func executeQuery(queryName string, queryNumber int, result ...queryHTTP) {
 	}
 
 	wg.Wait()
+}
+
+func filterQueries(queryName string, queryNumber int, queries []queryHTTP) []queryHTTP {
+	result := make([]queryHTTP, 0, len(queries))
+
+	for i := range queries {
+		q := queries[i]
+
+		if queryName != "" && queryName != q.name {
+			continue
+		}
+
+		if queryName == "" && queryNumber != 0 && queryNumber != q.queryNumber {
+			continue
+		}
+
+		result = append(result, q)
+	}
+
+	return result
 }
