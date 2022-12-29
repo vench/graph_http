@@ -17,6 +17,7 @@ type queryHTTP struct {
 	body    string
 
 	dependencyName string
+	output         string
 }
 
 func scan(r io.Reader) ([]queryHTTP, error) {
@@ -65,7 +66,7 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 		}
 
 		if line == "" && current.method == "POST" { // empty line
-			openBody = true
+			openBody = !openBody
 			continue
 		}
 
@@ -84,6 +85,9 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 			continue
 		}
 
+		if isOutput(line, current) {
+			continue
+		}
 	}
 
 	if current != nil {
@@ -94,9 +98,19 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 }
 
 // nolint: unused
-func isScript(line string) bool {
+func isProcessed(line string) bool {
 	if line != "" && line[:1] == ">" {
 		return false
+	}
+
+	return false
+}
+
+func isOutput(line string, query *queryHTTP) bool {
+	if line != "" && line[:2] == ">>" {
+		query.output = strings.TrimSpace(line[2:])
+
+		return true
 	}
 
 	return false

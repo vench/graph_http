@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -32,13 +33,14 @@ func executeQuery(result ...queryHTTP) {
 
 			if c, ok := dm[q.dependencyName]; ok {
 				// wait dependency query
+				log.Printf("query %s wait %s\n", q.name, q.dependencyName)
 				<-c
 			}
 
 			ctx, cancel := context.WithTimeout(context.Background(), defaultTimeOut)
 			defer cancel()
 
-			fmt.Printf("run query : %s\n\n", q.name)
+			log.Printf("begin run query : %s\n", q.name)
 
 			request, err := http.NewRequestWithContext(ctx, q.method, q.url, bytes.NewBufferString(q.body))
 			if err != nil {
@@ -47,19 +49,32 @@ func executeQuery(result ...queryHTTP) {
 
 			response, err := http.DefaultClient.Do(request)
 			if err != nil {
-				log.Fatalf("failed to do http request: %v", err)
+				log.Fatalf("failed to do http request[%s]: %v", q.name, err)
 			}
+
+			log.Printf("done run query : %s, status code: %d\n", q.name, response.StatusCode)
 
 			data, err := io.ReadAll(response.Body)
 			if err != nil {
 				log.Fatalf("failed to read body: %v", err)
 			}
 
-			for k := range response.Header {
-				fmt.Printf("%s: %s\n", k, strings.Join(response.Header[k], ","))
+			outWriter := os.Stdout
+			if q.output != "" {
+				f, err := os.Open(q.output)
+				if err != nil {
+					log.Fatalf("failed to open file %s: %v", q.output, err)
+				}
+				defer outWriter.Close()
+
+				outWriter = f
 			}
 
-			fmt.Printf("\n%s\n\n", string(data))
+			for k := range response.Header {
+				fmt.Fprintf(outWriter, "%s: %s\n", k, strings.Join(response.Header[k], ","))
+			}
+
+			fmt.Fprintf(outWriter, "\n%s\n\n", string(data))
 		}(&wg)
 	}
 
