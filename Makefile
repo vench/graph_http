@@ -19,7 +19,7 @@ test:
 
 .PHONY: lint
 lint:
-	$(V)${OUT_DIR}/golangci-lint run
+	$(V)${OUT_DIR}/golangci-lint run -c ./golangci.yml
 
 .PHONY: lint-install
 lint-install:

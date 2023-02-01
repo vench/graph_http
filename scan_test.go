@@ -20,6 +20,7 @@ func Test_scan(t *testing.T) {
 	}{
 		{
 			name: "empty",
+			err:  errEmptyReader,
 		},
 		{
 			name:  "ok - one line",

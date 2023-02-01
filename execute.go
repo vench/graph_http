@@ -51,6 +51,7 @@ func executeQuery(result ...queryHTTP) {
 			if err != nil {
 				log.Fatalf("failed to do http request[%s]: %v", q.name, err)
 			}
+			defer response.Body.Close()
 
 			log.Printf("done run query : %s, status code: %d\n", q.name, response.StatusCode)
 

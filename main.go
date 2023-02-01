@@ -35,7 +35,8 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Printf("version: %s, build: %s\n", version, build)
+		fmt.Printf("version: %s, build: %s \n", version, build)
+
 		return
 	}
 
@@ -59,12 +60,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to open file[%s] : %v", *inputFile, err)
 	}
-	defer f.Close()
 
 	result, err := scan(f)
 	if err != nil {
+		f.Close()
+
 		log.Fatalf("failed to scan file[%s] : %v", *inputFile, err)
 	}
+	defer f.Close()
 
 	executeQuery(filterQueries(queryName, queryNumber, result)...)
 }
