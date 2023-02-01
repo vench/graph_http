@@ -2,9 +2,15 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
+)
+
+const (
+	postMethod = "POST"
+	getMethod  = "GET"
 )
 
 type queryHTTP struct {
@@ -17,11 +23,14 @@ type queryHTTP struct {
 	body    string
 
 	dependencyName string
+	output         string
 }
+
+var errEmptyReader = errors.New("empty reader")
 
 func scan(r io.Reader) ([]queryHTTP, error) {
 	if r == nil {
-		return nil, nil
+		return nil, errEmptyReader
 	}
 
 	s := bufio.NewScanner(r)
@@ -64,19 +73,22 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 			continue
 		}
 
-		if line == "" && current.method == "POST" { // empty line
-			openBody = true
+		if line == "" && current.method == postMethod { // empty line
+			openBody = !openBody
+
 			continue
 		}
 
 		if openBody {
 			current.body += strings.TrimSpace(line)
+
 			continue
 		}
 
 		if isURL(line) {
 			current.url = parseURL(line)
 			current.method = parseMethod(line)
+
 			continue
 		}
 
@@ -84,6 +96,15 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 			continue
 		}
 
+		if isOutput(line, current) {
+			continue
+		}
+
+		if isProcessed(line) {
+			_ = line
+
+			continue
+		}
 	}
 
 	if current != nil {
@@ -93,10 +114,19 @@ func scan(r io.Reader) ([]queryHTTP, error) {
 	return result, nil
 }
 
-// nolint: unused
-func isScript(line string) bool {
+func isProcessed(line string) bool {
 	if line != "" && line[:1] == ">" {
-		return false
+		return true
+	}
+
+	return false
+}
+
+func isOutput(line string, query *queryHTTP) bool {
+	if line != "" && line[:2] == ">>" {
+		query.output = strings.TrimSpace(line[2:])
+
+		return true
 	}
 
 	return false
@@ -110,11 +140,11 @@ func isURL(line string) bool {
 	if line[:4] == "http" {
 		return true
 	}
-	if line[:3] == "GET" {
+	if line[:3] == getMethod {
 		return true
 	}
 
-	if line[:4] == "POST" {
+	if line[:4] == postMethod {
 		return true
 	}
 
@@ -134,6 +164,7 @@ func splitDependencyName(name string) (string, string) {
 		if !isName(s[1]) && len(s[1]) != 0 {
 			return strings.TrimSpace(s[0]), "### " + strings.TrimSpace(s[1])
 		}
+
 		return strings.TrimSpace(s[0]), strings.TrimSpace(s[1])
 	}
 
@@ -141,19 +172,19 @@ func splitDependencyName(name string) (string, string) {
 }
 
 func parseMethod(line string) string {
-	if line[:4] == "POST" {
-		return "POST"
+	if line[:4] == postMethod {
+		return postMethod
 	}
 
-	return "GET"
+	return getMethod
 }
 
 func parseURL(line string) string {
-	if line[:3] == "GET" {
+	if line[:3] == getMethod {
 		return strings.TrimSpace(line[3:])
 	}
 
-	if line[:4] == "POST" {
+	if line[:4] == postMethod {
 		return strings.TrimSpace(line[4:])
 	}
 
@@ -180,7 +211,6 @@ func isHeader(line string, query *queryHTTP) bool {
 
 			return true
 		}
-
 	}
 
 	return false

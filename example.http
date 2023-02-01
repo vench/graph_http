@@ -1,15 +1,14 @@
 https://api.myip.com
 
 ### test1
-http://localhost:8080/?test=foo
+https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH&tsyms=USD,EUR
 
 ### test2
-POST https://localhost:8080/?x=1y=2
-Cookie: abc=1234
-Content-Type: application/json
-X-Requested-With: XMLHttpRequest
+POST https://www.timeapi.io/api/Conversion/ConvertTimeZone
+Content-Type: application/json;charset=utf8
+Accept: application/json
 
-{"abc":"xyz"}
+{"fromTimeZone":"Europe/Amsterdam","dateTime":"2021-03-14 17:45:00","toTimeZone":"America/Los_Angeles","dstAmbiguity":""}
 
 ### test3 < test1
-GET http://localhost:8080/?x=1y=2
+GET  https://www.timeapi.io/api/Time/current/zone?timeZone=Europe/Amsterdam

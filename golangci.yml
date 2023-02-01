@@ -86,6 +86,8 @@ linters:
     - varnamelen
     - misspell
     - wsl
+    - exhaustruct
+    - forbidigo
   fast: false
 
 issues:

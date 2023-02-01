@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,10 +13,23 @@ func Test_execute(t *testing.T) {
 
 	tt := []struct {
 		name    string
+		handler func(writer http.ResponseWriter, request *http.Request)
 		queries []queryHTTP
 	}{
 		{
 			name: "empty",
+		},
+		{
+			name: "ok",
+			queries: []queryHTTP{
+				{
+					name: "query1",
+				},
+				{
+					name:           "query2",
+					dependencyName: "query1",
+				},
+			},
 		},
 	}
 
@@ -23,6 +38,20 @@ func Test_execute(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
+			if tc.handler == nil {
+				tc.handler = func(writer http.ResponseWriter, request *http.Request) {
+					t.Log("x")
+					writer.WriteHeader(http.StatusOK)
+				}
+			}
+
+			serv := httptest.NewServer(http.HandlerFunc(tc.handler))
+			defer serv.Close()
+
+			for i := range tc.queries {
+				tc.queries[i].url = serv.URL
+			}
 
 			executeQuery(tc.queries...)
 		})

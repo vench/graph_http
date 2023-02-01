@@ -20,6 +20,7 @@ func Test_scan(t *testing.T) {
 	}{
 		{
 			name: "empty",
+			err:  errEmptyReader,
 		},
 		{
 			name:  "ok - one line",
@@ -54,6 +55,8 @@ POST https://test.local/foo
   "date":"2022-11-12"
 }
 
+>> output.json
+
 `),
 			result: []queryHTTP{
 				{
@@ -81,6 +84,7 @@ POST https://test.local/foo
 					method:         "POST",
 					headers:        make(map[string]string),
 					body:           "{\"json\":1,\"date\":\"2022-11-12\"}",
+					output:         "output.json",
 				},
 			},
 		},
